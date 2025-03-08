@@ -1,11 +1,13 @@
 require('dotenv').config();
 const tmi = require('tmi.js');
+const https = require('https');
 
 // Define configuration options
 const opts = {
+  options: { debug: true },
   identity: {
     username: process.env.BOT_USERNAME,
-    password: process.env.OAUTH_TOKEN
+    password: process.env.CLIENT_TOKEN // This will be your OAuth token with client credentials
   },
   channels: [
     process.env.CHANNEL_NAME
@@ -18,9 +20,12 @@ const client = new tmi.client(opts);
 // Register our event handlers (defined below)
 client.on('message', onMessageHandler);
 client.on('connected', onConnectedHandler);
+client.on('disconnected', (reason) => {
+  console.log(`Bot disconnected: ${reason}`);
+});
 
 // Connect to Twitch
-client.connect();
+client.connect().catch(console.error);
 
 // Called every time a message comes in
 function onMessageHandler (target, context, msg, self) {
