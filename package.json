@@ -1,0 +1,17 @@
+{
+  "name": "twitch-bot",
+  "version": "1.0.0",
+  "description": "A Twitch chat bot built with Node.js",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "tmi.js": "^1.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+} 
