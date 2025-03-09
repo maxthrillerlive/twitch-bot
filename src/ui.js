@@ -103,28 +103,33 @@ class BotUI {
         // Common border style for all panels
         const commonBorder = {
             type: 'line',
-            fg: 'blue',
+            fg: 'cyan',
             ch: {
-                top: '═',
-                bottom: '═',
-                left: '║',
-                right: '║',
-                topLeft: '╔',
-                topRight: '╗',
-                bottomLeft: '╚',
-                bottomRight: '╝',
-                middle: '╬'
+                top: '━',
+                bottom: '━',
+                left: '┃',
+                right: '┃',
+                topLeft: '┏',
+                topRight: '┓',
+                bottomLeft: '┗',
+                bottomRight: '┛',
+                middle: '╋'
             }
         };
 
         // Common style for all panels
         const commonStyle = {
             border: {
-                fg: 'blue'
+                fg: 'cyan'
             },
             scrollbar: {
                 bg: 'blue',
                 fg: 'white'
+            },
+            focus: {
+                border: {
+                    fg: 'brightCyan'
+                }
             }
         };
 
@@ -139,19 +144,20 @@ class BotUI {
             style: {
                 ...commonStyle,
                 selected: {
-                    bg: 'blue',
-                    fg: 'white',
+                    bg: 'cyan',
+                    fg: 'black',
                     bold: true
                 },
                 item: {
+                    fg: 'white',
                     hover: {
-                        bg: 'blue',
-                        fg: 'white'
+                        bg: 'cyan',
+                        fg: 'black'
                     }
                 }
             },
             label: {
-                text: ' ◆ Menu ◆ ',
+                text: ' ★ Menu ★ ',
                 side: 'center'
             },
             keys: true,
@@ -177,24 +183,28 @@ class BotUI {
             right: 0,
             top: 0,
             border: commonBorder,
-            style: commonStyle,
+            style: {
+                ...commonStyle,
+                fg: 'white'
+            },
             label: {
-                text: ' ◆ Results ◆ ',
+                text: ' ★ Results ★ ',
                 side: 'center'
             },
-            content: 'Select an option from the menu',
+            content: '{center}Select an option from the menu{/center}',
             scrollable: true,
             alwaysScroll: true,
             scrollbar: {
-                ch: '┃',
+                ch: '│',
                 track: {
-                    bg: 'blue'
+                    bg: 'cyan'
                 },
                 style: {
                     inverse: true
                 }
             },
-            padding: 1
+            padding: 1,
+            tags: true
         });
 
         // Create the console panel (bottom right)
@@ -205,17 +215,20 @@ class BotUI {
             right: 0,
             bottom: 0,
             border: commonBorder,
-            style: commonStyle,
+            style: {
+                ...commonStyle,
+                fg: 'white'
+            },
             label: {
-                text: ' ◆ Console ◆ ',
+                text: ' ★ Console ★ ',
                 side: 'center'
             },
             scrollable: true,
             alwaysScroll: true,
             scrollbar: {
-                ch: '┃',
+                ch: '│',
                 track: {
-                    bg: 'blue'
+                    bg: 'cyan'
                 },
                 style: {
                     inverse: true
@@ -456,45 +469,46 @@ class BotUI {
             left: 'center',
             border: {
                 type: 'line',
-                fg: 'blue',
+                fg: 'cyan',
                 ch: {
-                    top: '═',
-                    bottom: '═',
-                    left: '║',
-                    right: '║',
-                    topLeft: '╔',
-                    topRight: '╗',
-                    bottomLeft: '╚',
-                    bottomRight: '╝'
+                    top: '━',
+                    bottom: '━',
+                    left: '┃',
+                    right: '┃',
+                    topLeft: '┏',
+                    topRight: '┓',
+                    bottomLeft: '┗',
+                    bottomRight: '┛'
                 }
             },
             style: {
                 border: {
-                    fg: 'blue'
+                    fg: 'cyan'
                 },
                 selected: {
-                    bg: 'blue',
-                    fg: 'white',
+                    bg: 'cyan',
+                    fg: 'black',
                     bold: true
                 },
                 item: {
+                    fg: 'white',
                     hover: {
-                        bg: 'blue',
-                        fg: 'white'
+                        bg: 'cyan',
+                        fg: 'black'
                     }
                 }
             },
             label: {
-                text: ` ◆ ${options.label} ◆ `,
+                text: ` ★ ${options.label} ★ `,
                 side: 'center'
             },
             keys: true,
             vi: true,
             mouse: true,
             scrollbar: {
-                ch: '┃',
+                ch: '│',
                 track: {
-                    bg: 'blue'
+                    bg: 'cyan'
                 },
                 style: {
                     inverse: true
@@ -511,16 +525,16 @@ class BotUI {
                 parent: this.screen,
                 border: {
                     type: 'line',
-                    fg: 'blue',
+                    fg: 'cyan',
                     ch: {
-                        top: '═',
-                        bottom: '═',
-                        left: '║',
-                        right: '║',
-                        topLeft: '╔',
-                        topRight: '╗',
-                        bottomLeft: '╚',
-                        bottomRight: '╝'
+                        top: '━',
+                        bottom: '━',
+                        left: '┃',
+                        right: '┃',
+                        topLeft: '┏',
+                        topRight: '┓',
+                        bottomLeft: '┗',
+                        bottomRight: '┛'
                     }
                 },
                 height: 'shrink',
@@ -528,17 +542,18 @@ class BotUI {
                 top: 'center',
                 left: 'center',
                 label: {
-                    text: ' ◆ Confirm ◆ ',
+                    text: ' ★ Confirm ★ ',
                     side: 'center'
                 },
                 style: {
                     border: {
-                        fg: 'blue'
-                    }
+                        fg: 'cyan'
+                    },
+                    fg: 'white'
                 },
                 padding: 1,
                 tags: true,
-                content: `${message}\n\nPress Y to confirm, N or Esc to cancel`
+                content: `{center}${message}{/center}\n\n{center}Press Y to confirm, N or Esc to cancel{/center}`
             });
 
             const cleanup = () => {
