@@ -1,6 +1,54 @@
 require('dotenv').config();
 const tmi = require('tmi.js');
+const fs = require('fs');
+const path = require('path');
 const commandManager = require('./commandManager');
+
+// Check for existing bot instance
+const lockFile = path.join(__dirname, '.bot.lock');
+try {
+    // Check if lock file exists and if the process is still running
+    if (fs.existsSync(lockFile)) {
+        const pid = fs.readFileSync(lockFile, 'utf8');
+        try {
+            // Try to send a signal to the process to see if it's running
+            process.kill(parseInt(pid), 0);
+            console.error('Error: Bot is already running (PID: ' + pid + ')');
+            console.error('If you\'re sure no other instance is running, delete the .bot.lock file and try again');
+            process.exit(1);
+        } catch (e) {
+            // Process not found, safe to continue
+            console.log('Found stale lock file, removing...');
+        }
+    }
+    // Create lock file with current process ID
+    fs.writeFileSync(lockFile, process.pid.toString());
+} catch (error) {
+    console.error('Error checking/creating lock file:', error);
+    process.exit(1);
+}
+
+// Clean up lock file on exit
+function cleanupLockFile() {
+    try {
+        if (fs.existsSync(lockFile)) {
+            fs.unlinkSync(lockFile);
+        }
+    } catch (error) {
+        console.error('Error removing lock file:', error);
+    }
+}
+
+// Register cleanup handlers
+process.on('exit', cleanupLockFile);
+process.on('SIGINT', () => {
+    cleanupLockFile();
+    shutdown('SIGINT');
+});
+process.on('SIGTERM', () => {
+    cleanupLockFile();
+    shutdown('SIGTERM');
+});
 
 // Validate environment variables
 if (!process.env.BOT_USERNAME) {
@@ -91,10 +139,6 @@ async function shutdown(signal) {
         process.exit(1);
     }
 }
-
-// Handle different shutdown signals
-process.once('SIGINT', () => shutdown('SIGINT')); // Use once instead of on
-process.once('SIGTERM', () => shutdown('SIGTERM')); // Use once instead of on
 
 // Connect to Twitch
 console.log('Connecting to Twitch...');
