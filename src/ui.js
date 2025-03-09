@@ -100,6 +100,34 @@ class BotUI {
             fullUnicode: true
         });
 
+        // Common border style for all panels
+        const commonBorder = {
+            type: 'line',
+            fg: 'blue',
+            ch: {
+                top: '═',
+                bottom: '═',
+                left: '║',
+                right: '║',
+                topLeft: '╔',
+                topRight: '╗',
+                bottomLeft: '╚',
+                bottomRight: '╝',
+                middle: '╬'
+            }
+        };
+
+        // Common style for all panels
+        const commonStyle = {
+            border: {
+                fg: 'blue'
+            },
+            scrollbar: {
+                bg: 'blue',
+                fg: 'white'
+            }
+        };
+
         // Create the menu panel (left side)
         this.menuList = blessed.list({
             parent: this.screen,
@@ -107,14 +135,9 @@ class BotUI {
             height: '100%',
             left: 0,
             top: 0,
-            border: {
-                type: 'line',
-                fg: 'blue'
-            },
+            border: commonBorder,
             style: {
-                border: {
-                    fg: 'blue'
-                },
+                ...commonStyle,
                 selected: {
                     bg: 'blue',
                     fg: 'white',
@@ -128,7 +151,7 @@ class BotUI {
                 }
             },
             label: {
-                text: ' Menu ',
+                text: ' ◆ Menu ◆ ',
                 side: 'center'
             },
             keys: true,
@@ -153,24 +176,17 @@ class BotUI {
             height: '60%',
             right: 0,
             top: 0,
-            border: {
-                type: 'line',
-                fg: 'blue'
-            },
-            style: {
-                border: {
-                    fg: 'blue'
-                }
-            },
+            border: commonBorder,
+            style: commonStyle,
             label: {
-                text: ' Results ',
+                text: ' ◆ Results ◆ ',
                 side: 'center'
             },
             content: 'Select an option from the menu',
             scrollable: true,
             alwaysScroll: true,
             scrollbar: {
-                ch: '║',
+                ch: '┃',
                 track: {
                     bg: 'blue'
                 },
@@ -188,23 +204,16 @@ class BotUI {
             height: '40%',
             right: 0,
             bottom: 0,
-            border: {
-                type: 'line',
-                fg: 'blue'
-            },
-            style: {
-                border: {
-                    fg: 'blue'
-                }
-            },
+            border: commonBorder,
+            style: commonStyle,
             label: {
-                text: ' Console ',
+                text: ' ◆ Console ◆ ',
                 side: 'center'
             },
             scrollable: true,
             alwaysScroll: true,
             scrollbar: {
-                ch: '║',
+                ch: '┃',
                 track: {
                     bg: 'blue'
                 },
@@ -447,7 +456,17 @@ class BotUI {
             left: 'center',
             border: {
                 type: 'line',
-                fg: 'blue'
+                fg: 'blue',
+                ch: {
+                    top: '═',
+                    bottom: '═',
+                    left: '║',
+                    right: '║',
+                    topLeft: '╔',
+                    topRight: '╗',
+                    bottomLeft: '╚',
+                    bottomRight: '╝'
+                }
             },
             style: {
                 border: {
@@ -466,14 +485,14 @@ class BotUI {
                 }
             },
             label: {
-                text: options.label,
+                text: ` ◆ ${options.label} ◆ `,
                 side: 'center'
             },
             keys: true,
             vi: true,
             mouse: true,
             scrollbar: {
-                ch: '║',
+                ch: '┃',
                 track: {
                     bg: 'blue'
                 },
@@ -492,14 +511,24 @@ class BotUI {
                 parent: this.screen,
                 border: {
                     type: 'line',
-                    fg: 'blue'
+                    fg: 'blue',
+                    ch: {
+                        top: '═',
+                        bottom: '═',
+                        left: '║',
+                        right: '║',
+                        topLeft: '╔',
+                        topRight: '╗',
+                        bottomLeft: '╚',
+                        bottomRight: '╝'
+                    }
                 },
                 height: 'shrink',
                 width: '50%',
                 top: 'center',
                 left: 'center',
                 label: {
-                    text: ' Confirm ',
+                    text: ' ◆ Confirm ◆ ',
                     side: 'center'
                 },
                 style: {
