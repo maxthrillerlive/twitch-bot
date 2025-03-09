@@ -96,26 +96,13 @@ class BotUI {
         this.screen = blessed.screen({
             smartCSR: true,
             title: 'Twitch Bot Control Panel',
-            dockBorders: true,
-            fullUnicode: true,
-            forceUnicode: true
+            dockBorders: true
         });
 
         // Common border style for all panels
         const commonBorder = {
             type: 'line',
-            fg: 'cyan',
-            ch: {
-                top: '─',
-                bottom: '─',
-                left: '│',
-                right: '│',
-                topLeft: '┌',
-                topRight: '┐',
-                bottomLeft: '└',
-                bottomRight: '┘',
-                middle: '┼'
-            }
+            fg: 'cyan'
         };
 
         // Common style for all panels
@@ -160,7 +147,7 @@ class BotUI {
                 }
             },
             label: {
-                text: ' ★ Menu ★ ',
+                text: ' * Menu * ',
                 side: 'center'
             },
             keys: true,
@@ -191,21 +178,13 @@ class BotUI {
                 fg: 'white'
             },
             label: {
-                text: ' ★ Results ★ ',
+                text: ' * Results * ',
                 side: 'center'
             },
             content: '{center}Select an option from the menu{/center}',
             scrollable: true,
             alwaysScroll: true,
-            scrollbar: {
-                ch: '│',
-                track: {
-                    bg: 'cyan'
-                },
-                style: {
-                    inverse: true
-                }
-            },
+            scrollbar: true,
             padding: 1,
             tags: true
         });
@@ -223,20 +202,12 @@ class BotUI {
                 fg: 'white'
             },
             label: {
-                text: ' ★ Console ★ ',
+                text: ' * Console * ',
                 side: 'center'
             },
             scrollable: true,
             alwaysScroll: true,
-            scrollbar: {
-                ch: '│',
-                track: {
-                    bg: 'cyan'
-                },
-                style: {
-                    inverse: true
-                }
-            },
+            scrollbar: true,
             padding: 1,
             tags: true,
             mouse: true
@@ -470,20 +441,7 @@ class BotUI {
             height: '50%',
             top: 'center',
             left: 'center',
-            border: {
-                type: 'line',
-                fg: 'cyan',
-                ch: {
-                    top: '─',
-                    bottom: '─',
-                    left: '│',
-                    right: '│',
-                    topLeft: '┌',
-                    topRight: '┐',
-                    bottomLeft: '└',
-                    bottomRight: '┘'
-                }
-            },
+            border: commonBorder,
             style: {
                 border: {
                     fg: 'cyan'
@@ -502,21 +460,13 @@ class BotUI {
                 }
             },
             label: {
-                text: ` ★ ${options.label} ★ `,
+                text: ` * ${options.label} * `,
                 side: 'center'
             },
             keys: true,
             vi: true,
             mouse: true,
-            scrollbar: {
-                ch: '│',
-                track: {
-                    bg: 'cyan'
-                },
-                style: {
-                    inverse: true
-                }
-            },
+            scrollbar: true,
             padding: 1,
             ...options
         });
@@ -526,26 +476,13 @@ class BotUI {
         return new Promise((resolve) => {
             const dialog = blessed.box({
                 parent: this.screen,
-                border: {
-                    type: 'line',
-                    fg: 'cyan',
-                    ch: {
-                        top: '─',
-                        bottom: '─',
-                        left: '│',
-                        right: '│',
-                        topLeft: '┌',
-                        topRight: '┐',
-                        bottomLeft: '└',
-                        bottomRight: '┘'
-                    }
-                },
+                border: commonBorder,
                 height: 'shrink',
                 width: '50%',
                 top: 'center',
                 left: 'center',
                 label: {
-                    text: ' ★ Confirm ★ ',
+                    text: ' * Confirm * ',
                     side: 'center'
                 },
                 style: {
