@@ -20,11 +20,15 @@ if (!process.env.CHANNEL_NAME) {
 const opts = {
     options: { 
         debug: true,
-        clientId: process.env.CLIENT_ID
+        clientId: process.env.CLIENT_ID,
+        messagesLogLevel: "info"
     },
     connection: {
         reconnect: true,
-        secure: true
+        secure: true,
+        timeout: 30000,
+        reconnectDecay: 1.4,
+        reconnectInterval: 1000
     },
     identity: {
         username: process.env.BOT_USERNAME,
@@ -38,12 +42,12 @@ const opts = {
 // Create a client with our options
 const client = new tmi.client(opts);
 
-// Remove any existing listeners
+// Clear any existing listeners before adding new ones
 client.removeAllListeners();
 
-// Register our event handlers
+// Register our event handlers (only once)
+client.once('connected', onConnectedHandler);
 client.on('message', onMessageHandler);
-client.on('connected', onConnectedHandler);
 client.on('disconnected', (reason) => {
     console.error('Bot disconnected:', reason);
 });
