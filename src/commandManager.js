@@ -121,8 +121,15 @@ class CommandManager {
         }
 
         try {
-            await command.execute(client, target, context, this);
-            return true;
+            // Execute command in a controlled context
+            const executionPromise = command.execute(client, target, context, this);
+            const result = await Promise.race([
+                executionPromise,
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Command execution timeout')), 5000)
+                )
+            ]);
+            return result === true;
         } catch (error) {
             console.error(`Error executing command ${command.name}:`, error);
             return false;

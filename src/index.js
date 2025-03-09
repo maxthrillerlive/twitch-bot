@@ -20,7 +20,9 @@ if (!process.env.CHANNEL_NAME) {
 const opts = {
     options: { 
         debug: false,
-        messagesLogLevel: "info"
+        messagesLogLevel: "info",
+        skipMembership: true,  // Skip membership events
+        skipUpdatingEmotesets: true  // Skip updating emote sets
     },
     connection: {
         reconnect: true,
@@ -30,13 +32,13 @@ const opts = {
         reconnectInterval: 1000,
         maxReconnectAttempts: 2
     },
+    channels: [
+        process.env.CHANNEL_NAME
+    ],
     identity: {
         username: process.env.BOT_USERNAME,
         password: process.env.CLIENT_TOKEN
-    },
-    channels: [
-        process.env.CHANNEL_NAME
-    ]
+    }
 };
 
 // Create a client with our options
@@ -47,7 +49,11 @@ client.removeAllListeners();
 
 // Register our event handlers (only once)
 client.once('connected', onConnectedHandler);
-client.on('message', onMessageHandler);
+
+// Use a single message handler
+const messageHandler = onMessageHandler.bind(client);
+client.on('message', messageHandler);
+client.removeAllListeners('action');  // Remove action listener to prevent duplicate handling
 
 // Only register essential event handlers
 client.on('disconnected', (reason) => {
@@ -105,13 +111,38 @@ client.connect()
         }
     });
 
-// Message deduplication cache
-const messageCache = new Set();
+// Message deduplication cache with message IDs
+const messageCache = new Map();
 const MESSAGE_CACHE_TTL = 2000; // 2 seconds TTL
+const COMMAND_COOLDOWN = 1000; // 1 second cooldown between same commands
 
-function addToMessageCache(key) {
-    messageCache.add(key);
-    setTimeout(() => messageCache.delete(key), MESSAGE_CACHE_TTL);
+function addToMessageCache(context, commandText) {
+    const now = Date.now();
+    const key = `${context.username}-${commandText}`;
+    const messageId = context['message-id'] || context.id;
+    
+    // Check for duplicate message ID
+    if (messageCache.has(messageId)) {
+        return false;
+    }
+    
+    // Check for command spam
+    const lastExecution = messageCache.get(key);
+    if (lastExecution && (now - lastExecution.timestamp) < COMMAND_COOLDOWN) {
+        return false;
+    }
+    
+    // Add to cache with both message ID and timestamp
+    messageCache.set(messageId, { timestamp: now });
+    messageCache.set(key, { timestamp: now });
+    
+    // Cleanup old entries
+    setTimeout(() => {
+        messageCache.delete(messageId);
+        messageCache.delete(key);
+    }, MESSAGE_CACHE_TTL);
+    
+    return true;
 }
 
 // Called every time a message comes in
@@ -126,17 +157,11 @@ async function onMessageHandler(target, context, msg, self) {
         return; // Not a command, ignore
     }
 
-    // Create a unique key for this message
-    const messageKey = `${context.username}-${commandText}-${Date.now()}`;
-    
-    // Check if we've seen this message recently
-    if (messageCache.has(messageKey)) {
-        console.log(`[DEBUG] Duplicate message detected, ignoring: ${commandText}`);
+    // Check for duplicate messages and command spam
+    if (!addToMessageCache(context, commandText)) {
+        console.log(`[DEBUG] Duplicate or rate-limited command: ${commandText}`);
         return;
     }
-    
-    // Add message to cache
-    addToMessageCache(messageKey);
 
     console.log(`[DEBUG] Processing command: ${commandText} from ${context.username}`);
 
