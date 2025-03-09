@@ -1,12 +1,18 @@
 const fs = require('fs');
 const path = require('path');
 
+let instance = null;
+
 class CommandManager {
     constructor() {
+        if (instance) {
+            return instance;
+        }
         this.commands = new Map();
         this.stateFile = path.join(__dirname, 'commandStates.json');
         this.loadCommands();
         this.loadState();
+        instance = this;
     }
 
     loadState() {

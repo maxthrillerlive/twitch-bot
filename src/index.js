@@ -38,6 +38,9 @@ const opts = {
 // Create a client with our options
 const client = new tmi.client(opts);
 
+// Remove any existing listeners
+client.removeAllListeners();
+
 // Register our event handlers
 client.on('message', onMessageHandler);
 client.on('connected', onConnectedHandler);
@@ -99,19 +102,26 @@ async function onMessageHandler(target, context, msg, self) {
 
     // Remove whitespace from chat message
     const commandText = msg.trim().toLowerCase();
-    console.log(`Received command: ${commandText} from ${context.username}`);
+    
+    // Check if the message is actually a command
+    if (!commandText.startsWith('!')) {
+        return; // Not a command, ignore
+    }
+
+    console.log(`[DEBUG] Processing command: ${commandText} from ${context.username}`);
 
     // Special commands for managing other commands
     const isBroadcaster = context.username.toLowerCase() === process.env.CHANNEL_NAME.toLowerCase();
     const isMod = context.mod || isBroadcaster || context.badges?.broadcaster === '1';
 
+    // Handle mod commands first
     if (isMod) {
         if (commandText.startsWith('!enable ')) {
             const commandName = commandText.split(' ')[1];
             if (commandManager.enableCommand(commandName)) {
                 await client.say(target, `Enabled command: ${commandName}`);
             }
-            return;
+            return; // Exit after handling mod command
         }
 
         if (commandText.startsWith('!disable ')) {
@@ -119,13 +129,15 @@ async function onMessageHandler(target, context, msg, self) {
             if (commandManager.disableCommand(commandName)) {
                 await client.say(target, `Disabled command: ${commandName}`);
             }
-            return;
+            return; // Exit after handling mod command
         }
     }
 
     // Handle regular commands
     try {
-        await commandManager.handleCommand(client, target, context, commandText);
+        console.log(`[DEBUG] Attempting to handle command via CommandManager`);
+        const handled = await commandManager.handleCommand(client, target, context, commandText);
+        console.log(`[DEBUG] Command handled: ${handled}`);
     } catch (error) {
         console.error('Error handling command:', error);
         await client.say(target, `@${context.username} Sorry, there was an error processing your command.`);
