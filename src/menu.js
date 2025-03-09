@@ -157,7 +157,7 @@ class BotMenu {
         if (confirm) {
             this.isShuttingDown = true;
             await this.client.say(process.env.CHANNEL_NAME, 'Bot is restarting...');
-            process.emit('SIGTERM');
+            process.kill(process.pid, 'SIGTERM');
         }
     }
 
@@ -174,7 +174,7 @@ class BotMenu {
         if (confirm) {
             this.isShuttingDown = true;
             await this.client.say(process.env.CHANNEL_NAME, 'Bot is shutting down...');
-            process.emit('SIGTERM');
+            process.kill(process.pid, 'SIGTERM');
         }
     }
 

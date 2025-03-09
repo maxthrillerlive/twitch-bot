@@ -47,15 +47,29 @@ function cleanupLockFile() {
 }
 
 // Register cleanup handlers
-process.on('exit', cleanupLockFile);
-process.on('SIGINT', () => {
-    cleanupLockFile();
-    shutdown('SIGINT');
+process.on('exit', () => {
+    if (!isShuttingDown) {
+        cleanupLockFile();
+    }
 });
-process.on('SIGTERM', () => {
-    cleanupLockFile();
-    shutdown('SIGTERM');
+
+// Handle different shutdown signals
+['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach(signal => {
+    process.on(signal, () => {
+        console.log(`\nReceived ${signal}`);
+        shutdown(signal);
+    });
 });
+
+// Remove any existing handlers for these signals
+process.removeAllListeners('SIGINT');
+process.removeAllListeners('SIGTERM');
+process.removeAllListeners('SIGQUIT');
+
+// Re-register our handlers
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGQUIT', () => shutdown('SIGQUIT'));
 
 // Validate environment variables
 if (!process.env.BOT_USERNAME) {
@@ -145,9 +159,16 @@ async function shutdown(signal) {
     try {
         // Save command states before disconnecting
         commandManager.saveState();
+        // Clean up the lock file
+        cleanupLockFile();
+        // Disconnect from Twitch
         await client.disconnect();
         console.log('Bot disconnected successfully.');
-        process.exit(0);
+        // Force exit after a short delay if normal exit doesn't work
+        setTimeout(() => {
+            console.log('Force exiting...');
+            process.exit(0);
+        }, 1000);
     } catch (error) {
         console.error('Error during shutdown:', error);
         process.exit(1);
