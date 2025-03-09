@@ -1,6 +1,33 @@
 const blessed = require('blessed');
 const commandManager = require('./commandManager');
 
+// Create a global message buffer
+const messageBuffer = [];
+const originalConsole = {
+    log: console.log,
+    error: console.error,
+    info: console.info,
+    warn: console.warn
+};
+
+// Set up early console capture
+console.log = (...args) => {
+    messageBuffer.push({ type: 'log', args });
+    originalConsole.log.apply(console, args);
+};
+console.error = (...args) => {
+    messageBuffer.push({ type: 'error', args });
+    originalConsole.error.apply(console, args);
+};
+console.info = (...args) => {
+    messageBuffer.push({ type: 'info', args });
+    originalConsole.info.apply(console, args);
+};
+console.warn = (...args) => {
+    messageBuffer.push({ type: 'warn', args });
+    originalConsole.warn.apply(console, args);
+};
+
 class BotUI {
     constructor(client) {
         this.client = client;
@@ -9,10 +36,7 @@ class BotUI {
         this.consoleInitialized = false;
 
         // Store original console methods
-        this.originalConsoleLog = console.log;
-        this.originalConsoleError = console.error;
-        this.originalConsoleInfo = console.info;
-        this.originalConsoleWarn = console.warn;
+        this.originalConsole = originalConsole;
 
         // Set up console redirection immediately
         this.redirectConsole();
@@ -32,7 +56,7 @@ class BotUI {
             }
             // Only call original console method for errors or if we're shutting down
             if (type === 'error' || this.isShuttingDown) {
-                this[`originalConsole${type.charAt(0).toUpperCase() + type.slice(1)}`].apply(console, args);
+                this.originalConsole[type].apply(console, args);
             }
         };
 
@@ -192,6 +216,15 @@ class BotUI {
             tags: true,
             mouse: true
         });
+
+        // Process any buffered messages first
+        while (messageBuffer.length > 0) {
+            const msg = messageBuffer.shift();
+            const color = msg.type === 'error' ? 'red' : 
+                         msg.type === 'warn' ? 'yellow' : 
+                         msg.type === 'info' ? 'green' : 'white';
+            this.logToConsole(color, ...msg.args);
+        }
 
         // Process any queued messages
         this.consoleInitialized = true;
