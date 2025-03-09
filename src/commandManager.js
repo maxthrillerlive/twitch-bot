@@ -73,7 +73,7 @@ class CommandManager {
         }
 
         try {
-            await command.execute(client, target, context);
+            await command.execute(client, target, context, this);
             return true;
         } catch (error) {
             console.error(`Error executing command ${command.name}:`, error);

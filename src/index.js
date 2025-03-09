@@ -96,15 +96,6 @@ async function onMessageHandler(target, context, msg, self) {
 
     // Special commands for managing other commands
     if (context.mod || context.username === process.env.CHANNEL_NAME) {
-        if (commandText === '!commands') {
-            const commands = commandManager.listCommands();
-            const commandList = commands.map(cmd => 
-                `${cmd.trigger} (${cmd.enabled ? 'enabled' : 'disabled'}): ${cmd.description}`
-            ).join(', ');
-            await client.say(target, `Available commands: ${commandList}`);
-            return;
-        }
-
         if (commandText.startsWith('!enable ')) {
             const commandName = commandText.split(' ')[1];
             if (commandManager.enableCommand(commandName)) {
