@@ -415,12 +415,34 @@ class BotUI {
             this.isShuttingDown = true;
             try {
                 await this.client.say(process.env.CHANNEL_NAME, 'Bot is restarting...');
+                
+                // Clean up the lock file before spawning new instance
+                const fs = require('fs');
+                const path = require('path');
+                const lockFile = path.join(__dirname, '..', 'bot.lock');
+                if (fs.existsSync(lockFile)) {
+                    fs.unlinkSync(lockFile);
+                }
+                
+                // Start a new instance of the bot
+                const { spawn } = require('child_process');
+                const scriptPath = path.join(__dirname, 'index.js');
+                const child = spawn('node', [scriptPath], {
+                    detached: true,
+                    stdio: 'inherit'
+                });
+                
+                // Unref the child process so the parent can exit
+                child.unref();
+
+                // Give the new instance time to start
+                setTimeout(() => {
+                    process.kill(process.pid, 'SIGTERM');
+                }, 1000);
             } catch (err) {
-                console.error('Error sending restart message:', err);
+                console.error('Error during restart:', err);
+                this.isShuttingDown = false;
             }
-            setTimeout(() => {
-                process.kill(process.pid, 'SIGTERM');
-            }, 500);
         }
     }
 
