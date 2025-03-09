@@ -95,7 +95,7 @@ class BotUI {
         // Create a screen object
         this.screen = blessed.screen({
             smartCSR: true,
-            title: 'Twitch Bot Control Panel',
+            title: '★ Twitch Bot Control Panel ★',
             dockBorders: true
         });
 
@@ -147,7 +147,7 @@ class BotUI {
                 }
             },
             label: {
-                text: ' * Menu * ',
+                text: ' Control Panel ',
                 side: 'center'
             },
             keys: true,
@@ -158,11 +158,11 @@ class BotUI {
                 right: 2
             },
             items: [
-                'View Commands',
+                'Commands',
                 'Enable Command',
                 'Disable Command',
-                'View Bot Status',
-                'View Connected Channels',
+                'Bot Status',
+                'Connected Channels',
                 'Clear Console',
                 'Restart Bot',
                 'Exit Bot'
@@ -183,10 +183,10 @@ class BotUI {
                 fg: 'white'
             },
             label: {
-                text: ' * Results * ',
+                text: ' Status ',
                 side: 'center'
             },
-            content: '{center}Select an option from the menu{/center}',
+            content: '{center}Select an option from the Control Panel{/center}',
             scrollable: true,
             alwaysScroll: true,
             scrollbar: true,
@@ -207,7 +207,7 @@ class BotUI {
                 fg: 'white'
             },
             label: {
-                text: ' * Console * ',
+                text: ' Console ',
                 side: 'center'
             },
             scrollable: true,
@@ -273,8 +273,8 @@ class BotUI {
     }
 
     async handleMenuChoice(choice) {
-        switch (choice) {
-            case 'View Commands':
+        switch (choice.trim()) {
+            case 'Commands':
                 await this.viewCommands();
                 break;
             case 'Enable Command':
@@ -283,10 +283,10 @@ class BotUI {
             case 'Disable Command':
                 await this.disableCommand();
                 break;
-            case 'View Bot Status':
+            case 'Bot Status':
                 this.viewBotStatus();
                 break;
-            case 'View Connected Channels':
+            case 'Connected Channels':
                 this.viewConnectedChannels();
                 break;
             case 'Clear Console':
@@ -465,7 +465,7 @@ class BotUI {
                 }
             },
             label: {
-                text: ` * ${options.label} * `,
+                text: options.label,
                 side: 'center'
             },
             keys: true,
