@@ -192,7 +192,7 @@ class BotUI {
             border: {
                 type: 'line'
             },
-            label: ' Select Command to Enable ',
+            label: ' Select Command to Enable (Esc to cancel) ',
             items: disabledCommands.map(cmd => `${cmd.trigger}: ${cmd.description}`),
             keys: true,
             vi: true,
@@ -205,17 +205,27 @@ class BotUI {
             }
         });
 
-        promptBox.focus();
-        this.screen.render();
-
-        promptBox.once('select', (item) => {
-            const commandName = item.content.split(':')[0].replace('!', '');
-            if (commandManager.enableCommand(commandName)) {
-                this.showResult(`Enabled command: ${commandName}`);
-            }
+        // Add escape key handler
+        promptBox.key(['escape'], () => {
             promptBox.destroy();
             this.menuList.focus();
             this.screen.render();
+        });
+
+        promptBox.focus();
+        this.screen.render();
+
+        return new Promise((resolve) => {
+            promptBox.once('select', (item) => {
+                const commandName = item.content.split(':')[0].replace('!', '');
+                if (commandManager.enableCommand(commandName)) {
+                    this.showResult(`Enabled command: ${commandName}`);
+                }
+                promptBox.destroy();
+                this.menuList.focus();
+                this.screen.render();
+                resolve();
+            });
         });
     }
 
@@ -237,7 +247,7 @@ class BotUI {
             border: {
                 type: 'line'
             },
-            label: ' Select Command to Disable ',
+            label: ' Select Command to Disable (Esc to cancel) ',
             items: enabledCommands.map(cmd => `${cmd.trigger}: ${cmd.description}`),
             keys: true,
             vi: true,
@@ -250,17 +260,27 @@ class BotUI {
             }
         });
 
-        promptBox.focus();
-        this.screen.render();
-
-        promptBox.once('select', (item) => {
-            const commandName = item.content.split(':')[0].replace('!', '');
-            if (commandManager.disableCommand(commandName)) {
-                this.showResult(`Disabled command: ${commandName}`);
-            }
+        // Add escape key handler
+        promptBox.key(['escape'], () => {
             promptBox.destroy();
             this.menuList.focus();
             this.screen.render();
+        });
+
+        promptBox.focus();
+        this.screen.render();
+
+        return new Promise((resolve) => {
+            promptBox.once('select', (item) => {
+                const commandName = item.content.split(':')[0].replace('!', '');
+                if (commandManager.disableCommand(commandName)) {
+                    this.showResult(`Disabled command: ${commandName}`);
+                }
+                promptBox.destroy();
+                this.menuList.focus();
+                this.screen.render();
+                resolve();
+            });
         });
     }
 
@@ -310,7 +330,7 @@ class BotUI {
                 width: '50%',
                 top: 'center',
                 left: 'center',
-                label: ' Confirm ',
+                label: ' Confirm (Esc to cancel) ',
                 tags: true,
                 keys: true,
                 vi: true,
@@ -318,8 +338,17 @@ class BotUI {
                 content: message
             });
 
+            // Add escape key handler
+            dialog.key(['escape'], () => {
+                dialog.destroy();
+                this.menuList.focus();
+                this.screen.render();
+                resolve(false);
+            });
+
             dialog.once('submit', (value) => {
                 dialog.destroy();
+                this.menuList.focus();
                 this.screen.render();
                 resolve(value);
             });
