@@ -97,7 +97,8 @@ class BotUI {
             smartCSR: true,
             title: 'Twitch Bot Control Panel',
             dockBorders: true,
-            fullUnicode: true
+            fullUnicode: true,
+            forceUnicode: true
         });
 
         // Common border style for all panels
@@ -105,30 +106,32 @@ class BotUI {
             type: 'line',
             fg: 'cyan',
             ch: {
-                top: '━',
-                bottom: '━',
-                left: '┃',
-                right: '┃',
-                topLeft: '┏',
-                topRight: '┓',
-                bottomLeft: '┗',
-                bottomRight: '┛',
-                middle: '╋'
+                top: '─',
+                bottom: '─',
+                left: '│',
+                right: '│',
+                topLeft: '┌',
+                topRight: '┐',
+                bottomLeft: '└',
+                bottomRight: '┘',
+                middle: '┼'
             }
         };
 
         // Common style for all panels
         const commonStyle = {
             border: {
-                fg: 'cyan'
+                fg: 'cyan',
+                bold: true
             },
             scrollbar: {
-                bg: 'blue',
-                fg: 'white'
+                bg: 'cyan',
+                fg: 'black'
             },
             focus: {
                 border: {
-                    fg: 'brightCyan'
+                    fg: 'white',
+                    bold: true
                 }
             }
         };
@@ -471,14 +474,14 @@ class BotUI {
                 type: 'line',
                 fg: 'cyan',
                 ch: {
-                    top: '━',
-                    bottom: '━',
-                    left: '┃',
-                    right: '┃',
-                    topLeft: '┏',
-                    topRight: '┓',
-                    bottomLeft: '┗',
-                    bottomRight: '┛'
+                    top: '─',
+                    bottom: '─',
+                    left: '│',
+                    right: '│',
+                    topLeft: '┌',
+                    topRight: '┐',
+                    bottomLeft: '└',
+                    bottomRight: '┘'
                 }
             },
             style: {
@@ -527,14 +530,14 @@ class BotUI {
                     type: 'line',
                     fg: 'cyan',
                     ch: {
-                        top: '━',
-                        bottom: '━',
-                        left: '┃',
-                        right: '┃',
-                        topLeft: '┏',
-                        topRight: '┓',
-                        bottomLeft: '┗',
-                        bottomRight: '┛'
+                        top: '─',
+                        bottom: '─',
+                        left: '│',
+                        right: '│',
+                        topLeft: '┌',
+                        topRight: '┐',
+                        bottomLeft: '└',
+                        bottomRight: '┘'
                     }
                 },
                 height: 'shrink',
