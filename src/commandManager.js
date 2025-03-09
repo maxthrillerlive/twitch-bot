@@ -24,7 +24,7 @@ class CommandManager {
                 const command = require(path.join(commandsPath, file));
                 if (command.name && command.trigger && command.execute) {
                     this.commands.set(command.trigger, command);
-                    console.log(`Loaded command: ${command.name}`);
+                    console.log(`Loaded command: ${command.name}${command.modOnly ? ' (Mod Only)' : ''}`);
                 }
             } catch (error) {
                 console.error(`Error loading command from ${file}:`, error);
@@ -66,6 +66,12 @@ class CommandManager {
             return false;
         }
 
+        // Check for mod-only commands
+        if (command.modOnly && !context.mod && context.username !== process.env.CHANNEL_NAME) {
+            await client.say(target, `@${context.username} Sorry, this command is for moderators only.`);
+            return false;
+        }
+
         try {
             await command.execute(client, target, context);
             return true;
@@ -80,7 +86,8 @@ class CommandManager {
             name: cmd.name,
             description: cmd.description,
             enabled: cmd.enabled,
-            trigger: cmd.trigger
+            trigger: cmd.trigger,
+            modOnly: cmd.modOnly || false
         }));
     }
 }

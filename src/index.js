@@ -54,10 +54,28 @@ client.on('error', (error) => {
     console.error('Connection error:', error);
 });
 
+// Graceful shutdown handling
+async function shutdown(signal) {
+    console.log(`\nReceived ${signal}. Disconnecting bot...`);
+    try {
+        await client.disconnect();
+        console.log('Bot disconnected successfully.');
+        process.exit(0);
+    } catch (error) {
+        console.error('Error during shutdown:', error);
+        process.exit(1);
+    }
+}
+
+// Handle different shutdown signals
+process.on('SIGINT', () => shutdown('SIGINT')); // Ctrl+C
+process.on('SIGTERM', () => shutdown('SIGTERM')); // Kill command
+
 // Connect to Twitch
 console.log('Connecting to Twitch...');
 console.log('Bot username:', process.env.BOT_USERNAME);
 console.log('Channel:', process.env.CHANNEL_NAME);
+console.log('\nTo safely stop the bot, press Ctrl+C');
 
 client.connect()
     .catch(err => {
