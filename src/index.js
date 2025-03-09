@@ -55,7 +55,12 @@ client.on('error', (error) => {
 });
 
 // Graceful shutdown handling
+let isShuttingDown = false;  // Add flag to prevent multiple shutdown attempts
+
 async function shutdown(signal) {
+    if (isShuttingDown) return;  // If already shutting down, ignore additional signals
+    isShuttingDown = true;
+
     console.log(`\nReceived ${signal}. Disconnecting bot...`);
     try {
         await client.disconnect();
@@ -68,8 +73,8 @@ async function shutdown(signal) {
 }
 
 // Handle different shutdown signals
-process.on('SIGINT', () => shutdown('SIGINT')); // Ctrl+C
-process.on('SIGTERM', () => shutdown('SIGTERM')); // Kill command
+process.once('SIGINT', () => shutdown('SIGINT')); // Use once instead of on
+process.once('SIGTERM', () => shutdown('SIGTERM')); // Use once instead of on
 
 // Connect to Twitch
 console.log('Connecting to Twitch...');
