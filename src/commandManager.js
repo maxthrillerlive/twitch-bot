@@ -4,7 +4,42 @@ const path = require('path');
 class CommandManager {
     constructor() {
         this.commands = new Map();
+        this.stateFile = path.join(__dirname, 'commandStates.json');
         this.loadCommands();
+        this.loadState();
+    }
+
+    loadState() {
+        try {
+            if (fs.existsSync(this.stateFile)) {
+                const states = JSON.parse(fs.readFileSync(this.stateFile, 'utf8'));
+                // Apply saved states to commands
+                for (const [name, enabled] of Object.entries(states)) {
+                    for (const command of this.commands.values()) {
+                        if (command.name === name) {
+                            command.enabled = enabled;
+                            break;
+                        }
+                    }
+                }
+                console.log('Loaded command states:', states);
+            }
+        } catch (error) {
+            console.error('Error loading command states:', error);
+        }
+    }
+
+    saveState() {
+        try {
+            const states = {};
+            for (const command of this.commands.values()) {
+                states[command.name] = command.enabled;
+            }
+            fs.writeFileSync(this.stateFile, JSON.stringify(states, null, 2));
+            console.log('Saved command states:', states);
+        } catch (error) {
+            console.error('Error saving command states:', error);
+        }
     }
 
     loadCommands() {
@@ -37,6 +72,7 @@ class CommandManager {
             if (command.name === commandName) {
                 command.enabled = true;
                 console.log(`Enabled command: ${commandName}`);
+                this.saveState();
                 return true;
             }
         }
@@ -48,6 +84,7 @@ class CommandManager {
             if (command.name === commandName) {
                 command.enabled = false;
                 console.log(`Disabled command: ${commandName}`);
+                this.saveState();
                 return true;
             }
         }

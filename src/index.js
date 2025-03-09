@@ -63,6 +63,8 @@ async function shutdown(signal) {
 
     console.log(`\nReceived ${signal}. Disconnecting bot...`);
     try {
+        // Save command states before disconnecting
+        commandManager.saveState();
         await client.disconnect();
         console.log('Bot disconnected successfully.');
         process.exit(0);
