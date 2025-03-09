@@ -5,7 +5,48 @@ class BotUI {
     constructor(client) {
         this.client = client;
         this.isShuttingDown = false;
+
+        // Store original console methods
+        this.originalConsoleLog = console.log;
+        this.originalConsoleError = console.error;
+        this.originalConsoleInfo = console.info;
+        this.originalConsoleWarn = console.warn;
+
+        // Set up console redirection immediately
+        this.redirectConsole();
+        
+        // Set up the screen after console redirection
         this.setupScreen();
+    }
+
+    redirectConsole() {
+        console.log = (...args) => {
+            if (this.consoleBox) {
+                this.logToConsole('white', ...args);
+            }
+            this.originalConsoleLog.apply(console, args);
+        };
+        
+        console.error = (...args) => {
+            if (this.consoleBox) {
+                this.logToConsole('red', ...args);
+            }
+            this.originalConsoleError.apply(console, args);
+        };
+
+        console.info = (...args) => {
+            if (this.consoleBox) {
+                this.logToConsole('green', ...args);
+            }
+            this.originalConsoleInfo.apply(console, args);
+        };
+
+        console.warn = (...args) => {
+            if (this.consoleBox) {
+                this.logToConsole('yellow', ...args);
+            }
+            this.originalConsoleWarn.apply(console, args);
+        };
     }
 
     setupScreen() {
@@ -146,32 +187,6 @@ class BotUI {
 
         // Focus on the menu
         this.menuList.focus();
-
-        // Override console.log and related functions to write to our console box
-        const originalConsoleLog = console.log;
-        const originalConsoleError = console.error;
-        const originalConsoleInfo = console.info;
-        const originalConsoleWarn = console.warn;
-        
-        console.log = (...args) => {
-            this.logToConsole('white', ...args);
-            originalConsoleLog.apply(console, args);
-        };
-        
-        console.error = (...args) => {
-            this.logToConsole('red', ...args);
-            originalConsoleError.apply(console, args);
-        };
-
-        console.info = (...args) => {
-            this.logToConsole('green', ...args);
-            originalConsoleInfo.apply(console, args);
-        };
-
-        console.warn = (...args) => {
-            this.logToConsole('yellow', ...args);
-            originalConsoleWarn.apply(console, args);
-        };
 
         // Draw box characters for borders
         this.screen.on('resize', () => {
