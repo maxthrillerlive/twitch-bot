@@ -3,7 +3,7 @@ const tmi = require('tmi.js');
 const fs = require('fs');
 const path = require('path');
 const commandManager = require('./commandManager');
-const BotMenu = require('./menu');
+const BotUI = require('./ui');
 
 // Move lock file to project root directory
 const lockFile = path.join(__dirname, '..', 'bot.lock');
@@ -113,18 +113,14 @@ const opts = {
 // Create a client with our options
 const client = new tmi.client(opts);
 
-// Initialize menu
-const menu = new BotMenu(client);
+// Initialize UI
+const ui = new BotUI(client);
 
 // Clear any existing listeners before adding new ones
 client.removeAllListeners();
 
 // Register our event handlers (only once)
-client.once('connected', async (addr, port) => {
-    onConnectedHandler(addr, port);
-    // Show menu after connection
-    await menu.showMainMenu();
-});
+client.once('connected', onConnectedHandler);
 
 // Use a single message handler
 const messageHandler = onMessageHandler.bind(client);
