@@ -5,6 +5,8 @@ class BotUI {
     constructor(client) {
         this.client = client;
         this.isShuttingDown = false;
+        this.messageQueue = [];
+        this.consoleInitialized = false;
 
         // Store original console methods
         this.originalConsoleLog = console.log;
@@ -20,33 +22,49 @@ class BotUI {
     }
 
     redirectConsole() {
-        console.log = (...args) => {
-            if (this.consoleBox) {
-                this.logToConsole('white', ...args);
+        const redirect = (type, color, args) => {
+            const formattedMessage = this.formatMessage(color, args);
+            if (this.consoleInitialized && this.consoleBox) {
+                this.consoleBox.log(formattedMessage);
+                this.screen.render();
+            } else {
+                this.messageQueue.push(formattedMessage);
             }
-            this.originalConsoleLog.apply(console, args);
-        };
-        
-        console.error = (...args) => {
-            if (this.consoleBox) {
-                this.logToConsole('red', ...args);
+            // Only call original console method for errors or if we're shutting down
+            if (type === 'error' || this.isShuttingDown) {
+                this[`originalConsole${type.charAt(0).toUpperCase() + type.slice(1)}`].apply(console, args);
             }
-            this.originalConsoleError.apply(console, args);
-        };
-
-        console.info = (...args) => {
-            if (this.consoleBox) {
-                this.logToConsole('green', ...args);
-            }
-            this.originalConsoleInfo.apply(console, args);
         };
 
-        console.warn = (...args) => {
-            if (this.consoleBox) {
-                this.logToConsole('yellow', ...args);
+        console.log = (...args) => redirect('log', 'white', args);
+        console.error = (...args) => redirect('error', 'red', args);
+        console.info = (...args) => redirect('info', 'green', args);
+        console.warn = (...args) => redirect('warn', 'yellow', args);
+    }
+
+    formatMessage(color, args) {
+        const timestamp = new Date().toLocaleTimeString();
+        const formattedArgs = args.map(arg => {
+            if (Array.isArray(arg)) {
+                return arg.map(item => this.formatArg(item)).join(', ');
             }
-            this.originalConsoleWarn.apply(console, args);
-        };
+            return this.formatArg(arg);
+        }).join(' ');
+        return `{${color}-fg}[${timestamp}] ${formattedArgs}{/${color}-fg}`;
+    }
+
+    formatArg(arg) {
+        if (arg === null) return 'null';
+        if (arg === undefined) return 'undefined';
+        if (typeof arg === 'object') {
+            if (arg.trigger) return arg.trigger;
+            try {
+                return JSON.stringify(arg, null, 2);
+            } catch (e) {
+                return '[Object]';
+            }
+        }
+        return String(arg);
     }
 
     setupScreen() {
@@ -171,8 +189,16 @@ class BotUI {
                 }
             },
             padding: 1,
-            tags: true
+            tags: true,
+            mouse: true
         });
+
+        // Process any queued messages
+        this.consoleInitialized = true;
+        while (this.messageQueue.length > 0) {
+            const message = this.messageQueue.shift();
+            this.consoleBox.log(message);
+        }
 
         // Handle menu selection
         this.menuList.on('select', async (item) => {
@@ -198,25 +224,13 @@ class BotUI {
     }
 
     logToConsole(color, ...args) {
-        const timestamp = new Date().toLocaleTimeString();
-        const formattedArgs = args.map(arg => {
-            if (Array.isArray(arg)) {
-                return arg.map(item => {
-                    if (typeof item === 'object' && item !== null) {
-                        // For command objects, show the trigger
-                        return item.trigger || JSON.stringify(item);
-                    }
-                    return String(item);
-                }).join(', ');
-            } else if (typeof arg === 'object' && arg !== null) {
-                // For command objects, show the trigger
-                return arg.trigger || JSON.stringify(arg);
-            }
-            return String(arg);
-        });
-        const message = formattedArgs.join(' ');
-        this.consoleBox.log(`{${color}-fg}[${timestamp}] ${message}{/${color}-fg}`);
-        this.screen.render();
+        const formattedMessage = this.formatMessage(color, args);
+        if (this.consoleBox) {
+            this.consoleBox.log(formattedMessage);
+            this.screen.render();
+        } else {
+            this.messageQueue.push(formattedMessage);
+        }
     }
 
     showResult(content) {
