@@ -153,6 +153,10 @@ class BotUI {
             keys: true,
             vi: true,
             mouse: true,
+            padding: {
+                left: 2,
+                right: 2
+            },
             items: [
                 'View Commands',
                 'Enable Command',
@@ -162,7 +166,8 @@ class BotUI {
                 'Clear Console',
                 'Restart Bot',
                 'Exit Bot'
-            ]
+            ].map(item => `  ${item}  `),
+            align: 'left'
         });
 
         // Create the results panel (top right)
