@@ -1,5 +1,6 @@
 require('dotenv').config();
 const tmi = require('tmi.js');
+const commandManager = require('./commandManager');
 
 // Validate environment variables
 if (!process.env.BOT_USERNAME) {
@@ -27,7 +28,7 @@ const opts = {
     },
     identity: {
         username: process.env.BOT_USERNAME,
-        password: process.env.CLIENT_TOKEN // This will be your OAuth token
+        password: process.env.CLIENT_TOKEN
     },
     channels: [
         process.env.CHANNEL_NAME
@@ -68,46 +69,52 @@ client.connect()
     });
 
 // Called every time a message comes in
-async function onMessageHandler (target, context, msg, self) {
-    console.log(`Received message: ${msg} from ${context.username} in ${target}`);
-    
-    if (self) { 
-        console.log('Ignoring message from self');
-        return; 
-    }
+async function onMessageHandler(target, context, msg, self) {
+    if (self) { return; } // Ignore messages from the bot
 
     // Remove whitespace from chat message
-    const commandName = msg.trim().toLowerCase();
-    console.log(`Processing command: ${commandName}`);
+    const commandText = msg.trim().toLowerCase();
+    console.log(`Received command: ${commandText} from ${context.username}`);
 
-    try {
-        // If the command is known, let's execute it
-        if (commandName === '!dice') {
-            const num = rollDice();
-            console.log(`Rolled dice: ${num}`);
-            await client.say(target, `@${context.username} rolled a ${num}`);
-            console.log(`Sent dice roll response to ${target}`);
-        } else if (commandName === '!hello') {
-            await client.say(target, `Hello @${context.username}!`);
-            console.log(`Sent hello response to ${target}`);
+    // Special commands for managing other commands
+    if (context.mod || context.username === process.env.CHANNEL_NAME) {
+        if (commandText === '!commands') {
+            const commands = commandManager.listCommands();
+            const commandList = commands.map(cmd => 
+                `${cmd.trigger} (${cmd.enabled ? 'enabled' : 'disabled'}): ${cmd.description}`
+            ).join(', ');
+            await client.say(target, `Available commands: ${commandList}`);
+            return;
         }
-    } catch (error) {
-        console.error('Error handling command:', error);
-        try {
-            await client.say(target, `@${context.username} Sorry, there was an error processing your command.`);
-        } catch (e) {
-            console.error('Error sending error message:', e);
+
+        if (commandText.startsWith('!enable ')) {
+            const commandName = commandText.split(' ')[1];
+            if (commandManager.enableCommand(commandName)) {
+                await client.say(target, `Enabled command: ${commandName}`);
+            }
+            return;
+        }
+
+        if (commandText.startsWith('!disable ')) {
+            const commandName = commandText.split(' ')[1];
+            if (commandManager.disableCommand(commandName)) {
+                await client.say(target, `Disabled command: ${commandName}`);
+            }
+            return;
         }
     }
-}
 
-// Function called when the "dice" command is issued
-function rollDice () {
-    const sides = 6;
-    return Math.floor(Math.random() * sides) + 1;
+    // Handle regular commands
+    try {
+        await commandManager.handleCommand(client, target, context, commandText);
+    } catch (error) {
+        console.error('Error handling command:', error);
+        await client.say(target, `@${context.username} Sorry, there was an error processing your command.`);
+    }
 }
 
 // Called every time the bot connects to Twitch chat
-function onConnectedHandler (addr, port) {
+function onConnectedHandler(addr, port) {
     console.log(`* Connected to ${addr}:${port}`);
+    console.log('Available commands:', commandManager.listCommands());
 } 
