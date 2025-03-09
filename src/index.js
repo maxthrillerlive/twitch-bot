@@ -4,25 +4,31 @@ const fs = require('fs');
 const path = require('path');
 const commandManager = require('./commandManager');
 
-// Check for existing bot instance
-const lockFile = path.join(__dirname, '.bot.lock');
+// Move lock file to project root directory
+const lockFile = path.join(__dirname, '..', 'bot.lock');
+console.log('Lock file location:', lockFile);
+
 try {
     // Check if lock file exists and if the process is still running
     if (fs.existsSync(lockFile)) {
         const pid = fs.readFileSync(lockFile, 'utf8');
+        console.log('Found existing lock file with PID:', pid);
         try {
             // Try to send a signal to the process to see if it's running
             process.kill(parseInt(pid), 0);
             console.error('Error: Bot is already running (PID: ' + pid + ')');
-            console.error('If you\'re sure no other instance is running, delete the .bot.lock file and try again');
+            console.error('Lock file location:', lockFile);
+            console.error('If you\'re sure no other instance is running, delete the bot.lock file and try again');
             process.exit(1);
         } catch (e) {
             // Process not found, safe to continue
             console.log('Found stale lock file, removing...');
+            fs.unlinkSync(lockFile);
         }
     }
     // Create lock file with current process ID
     fs.writeFileSync(lockFile, process.pid.toString());
+    console.log('Created lock file with PID:', process.pid);
 } catch (error) {
     console.error('Error checking/creating lock file:', error);
     process.exit(1);
