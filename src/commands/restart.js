@@ -6,10 +6,14 @@ module.exports = {
     description: 'Restart the bot (Moderators only)',
     enabled: true,
     trigger: '!restart',
-    modOnly: true, // This flag indicates this is a mod-only command
+    modOnly: true,
     execute: async (client, target, context) => {
-        if (!context.mod && context.username !== process.env.CHANNEL_NAME) {
-            await client.say(target, `@${context.username} Sorry, only moderators can use this command.`);
+        // Check if user is broadcaster or mod
+        const isBroadcaster = context.username.toLowerCase() === process.env.CHANNEL_NAME.toLowerCase();
+        const isMod = context.mod || isBroadcaster || context.badges?.broadcaster === '1';
+
+        if (!isMod) {
+            await client.say(target, `@${context.username} Sorry, this command is for moderators only.`);
             return false;
         }
 

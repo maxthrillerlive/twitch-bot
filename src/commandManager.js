@@ -66,10 +66,15 @@ class CommandManager {
             return false;
         }
 
-        // Check for mod-only commands
-        if (command.modOnly && !context.mod && context.username !== process.env.CHANNEL_NAME) {
-            await client.say(target, `@${context.username} Sorry, this command is for moderators only.`);
-            return false;
+        // Check for mod-only commands with consistent permission checking
+        if (command.modOnly) {
+            const isBroadcaster = context.username.toLowerCase() === process.env.CHANNEL_NAME.toLowerCase();
+            const isMod = context.mod || isBroadcaster || context.badges?.broadcaster === '1';
+            
+            if (!isMod) {
+                await client.say(target, `@${context.username} Sorry, this command is for moderators only.`);
+                return false;
+            }
         }
 
         try {

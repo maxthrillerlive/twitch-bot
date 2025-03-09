@@ -100,7 +100,10 @@ async function onMessageHandler(target, context, msg, self) {
     console.log(`Received command: ${commandText} from ${context.username}`);
 
     // Special commands for managing other commands
-    if (context.mod || context.username === process.env.CHANNEL_NAME) {
+    const isBroadcaster = context.username.toLowerCase() === process.env.CHANNEL_NAME.toLowerCase();
+    const isMod = context.mod || isBroadcaster || context.badges?.broadcaster === '1';
+
+    if (isMod) {
         if (commandText.startsWith('!enable ')) {
             const commandName = commandText.split(' ')[1];
             if (commandManager.enableCommand(commandName)) {
