@@ -350,8 +350,14 @@ class BotUI {
         const confirm = await this.showConfirmDialog('Are you sure you want to restart the bot?');
         if (confirm) {
             this.isShuttingDown = true;
-            await this.client.say(process.env.CHANNEL_NAME, 'Bot is restarting...');
-            process.kill(process.pid, 'SIGTERM');
+            try {
+                await this.client.say(process.env.CHANNEL_NAME, 'Bot is restarting...');
+            } catch (err) {
+                console.error('Error sending restart message:', err);
+            }
+            setTimeout(() => {
+                process.kill(process.pid, 'SIGTERM');
+            }, 500);
         }
     }
 
@@ -359,8 +365,14 @@ class BotUI {
         const confirm = await this.showConfirmDialog('Are you sure you want to exit?');
         if (confirm) {
             this.isShuttingDown = true;
-            await this.client.say(process.env.CHANNEL_NAME, 'Bot is shutting down...');
-            process.kill(process.pid, 'SIGTERM');
+            try {
+                await this.client.say(process.env.CHANNEL_NAME, 'Bot is shutting down...');
+            } catch (err) {
+                console.error('Error sending shutdown message:', err);
+            }
+            setTimeout(() => {
+                process.kill(process.pid, 'SIGTERM');
+            }, 500);
         }
     }
 
@@ -414,7 +426,7 @@ class BotUI {
 
     showConfirmDialog(message) {
         return new Promise((resolve) => {
-            const dialog = blessed.question({
+            const dialog = blessed.box({
                 parent: this.screen,
                 border: {
                     type: 'line',
@@ -425,7 +437,7 @@ class BotUI {
                 top: 'center',
                 left: 'center',
                 label: {
-                    text: ' Confirm (Esc to cancel) ',
+                    text: ' Confirm ',
                     side: 'center'
                 },
                 style: {
@@ -435,24 +447,24 @@ class BotUI {
                 },
                 padding: 1,
                 tags: true,
-                keys: true,
-                vi: true,
-                mouse: true,
-                content: message
+                content: `${message}\n\nPress Y to confirm, N or Esc to cancel`
             });
 
-            dialog.key(['escape'], () => {
+            const cleanup = () => {
                 dialog.destroy();
                 this.menuList.focus();
                 this.screen.render();
+            };
+
+            // Handle key events
+            this.screen.key(['y', 'Y'], () => {
+                cleanup();
+                resolve(true);
+            });
+
+            this.screen.key(['escape', 'n', 'N'], () => {
+                cleanup();
                 resolve(false);
-            });
-
-            dialog.once('submit', (value) => {
-                dialog.destroy();
-                this.menuList.focus();
-                this.screen.render();
-                resolve(value);
             });
 
             this.screen.render();
