@@ -12,7 +12,9 @@ class BotUI {
         // Create a screen object
         this.screen = blessed.screen({
             smartCSR: true,
-            title: 'Twitch Bot Control Panel'
+            title: 'Twitch Bot Control Panel',
+            dockBorders: true,
+            fullUnicode: true
         });
 
         // Create the menu panel (left side)
@@ -23,13 +25,28 @@ class BotUI {
             left: 0,
             top: 0,
             border: {
-                type: 'line'
+                type: 'line',
+                fg: 'blue'
             },
             style: {
+                border: {
+                    fg: 'blue'
+                },
                 selected: {
                     bg: 'blue',
-                    fg: 'white'
+                    fg: 'white',
+                    bold: true
+                },
+                item: {
+                    hover: {
+                        bg: 'blue',
+                        fg: 'white'
+                    }
                 }
+            },
+            label: {
+                text: ' Menu ',
+                side: 'center'
             },
             keys: true,
             vi: true,
@@ -54,21 +71,31 @@ class BotUI {
             right: 0,
             top: 0,
             border: {
-                type: 'line'
+                type: 'line',
+                fg: 'blue'
             },
-            label: ' Results ',
+            style: {
+                border: {
+                    fg: 'blue'
+                }
+            },
+            label: {
+                text: ' Results ',
+                side: 'center'
+            },
             content: 'Select an option from the menu',
             scrollable: true,
             alwaysScroll: true,
             scrollbar: {
-                ch: ' ',
+                ch: '║',
                 track: {
-                    bg: 'cyan'
+                    bg: 'blue'
                 },
                 style: {
                     inverse: true
                 }
-            }
+            },
+            padding: 1
         });
 
         // Create the console panel (bottom right)
@@ -79,20 +106,31 @@ class BotUI {
             right: 0,
             bottom: 0,
             border: {
-                type: 'line'
+                type: 'line',
+                fg: 'blue'
             },
-            label: ' Console ',
+            style: {
+                border: {
+                    fg: 'blue'
+                }
+            },
+            label: {
+                text: ' Console ',
+                side: 'center'
+            },
             scrollable: true,
             alwaysScroll: true,
             scrollbar: {
-                ch: ' ',
+                ch: '║',
                 track: {
-                    bg: 'cyan'
+                    bg: 'blue'
                 },
                 style: {
                     inverse: true
                 }
-            }
+            },
+            padding: 1,
+            tags: true
         });
 
         // Handle menu selection
@@ -109,21 +147,45 @@ class BotUI {
         // Focus on the menu
         this.menuList.focus();
 
-        // Override console.log to write to our console box
+        // Override console.log and related functions to write to our console box
         const originalConsoleLog = console.log;
         const originalConsoleError = console.error;
+        const originalConsoleInfo = console.info;
+        const originalConsoleWarn = console.warn;
         
         console.log = (...args) => {
-            this.consoleBox.log(args.join(' '));
+            this.logToConsole('white', ...args);
             originalConsoleLog.apply(console, args);
         };
         
         console.error = (...args) => {
-            this.consoleBox.log('{red-fg}' + args.join(' ') + '{/red-fg}');
+            this.logToConsole('red', ...args);
             originalConsoleError.apply(console, args);
         };
 
+        console.info = (...args) => {
+            this.logToConsole('green', ...args);
+            originalConsoleInfo.apply(console, args);
+        };
+
+        console.warn = (...args) => {
+            this.logToConsole('yellow', ...args);
+            originalConsoleWarn.apply(console, args);
+        };
+
+        // Draw box characters for borders
+        this.screen.on('resize', () => {
+            this.screen.render();
+        });
+
         // Initial render
+        this.screen.render();
+    }
+
+    logToConsole(color, ...args) {
+        const timestamp = new Date().toLocaleTimeString();
+        const message = args.join(' ');
+        this.consoleBox.log(`{${color}-fg}[${timestamp}] ${message}{/${color}-fg}`);
         this.screen.render();
     }
 
@@ -183,26 +245,9 @@ class BotUI {
             return;
         }
 
-        const promptBox = blessed.list({
-            parent: this.screen,
-            width: '50%',
-            height: '50%',
-            top: 'center',
-            left: 'center',
-            border: {
-                type: 'line'
-            },
-            label: ' Select Command to Enable (Esc to cancel) ',
+        const promptBox = this.createPromptBox({
             items: disabledCommands.map(cmd => `${cmd.trigger}: ${cmd.description}`),
-            keys: true,
-            vi: true,
-            mouse: true,
-            style: {
-                selected: {
-                    bg: 'blue',
-                    fg: 'white'
-                }
-            }
+            label: ' Select Command to Enable (Esc to cancel) '
         });
 
         // Add escape key handler
@@ -238,26 +283,9 @@ class BotUI {
             return;
         }
 
-        const promptBox = blessed.list({
-            parent: this.screen,
-            width: '50%',
-            height: '50%',
-            top: 'center',
-            left: 'center',
-            border: {
-                type: 'line'
-            },
-            label: ' Select Command to Disable (Esc to cancel) ',
+        const promptBox = this.createPromptBox({
             items: enabledCommands.map(cmd => `${cmd.trigger}: ${cmd.description}`),
-            keys: true,
-            vi: true,
-            mouse: true,
-            style: {
-                selected: {
-                    bg: 'blue',
-                    fg: 'white'
-                }
-            }
+            label: ' Select Command to Disable (Esc to cancel) '
         });
 
         // Add escape key handler
@@ -321,16 +349,76 @@ class BotUI {
         }
     }
 
+    createPromptBox(options) {
+        return blessed.list({
+            parent: this.screen,
+            width: '50%',
+            height: '50%',
+            top: 'center',
+            left: 'center',
+            border: {
+                type: 'line',
+                fg: 'blue'
+            },
+            style: {
+                border: {
+                    fg: 'blue'
+                },
+                selected: {
+                    bg: 'blue',
+                    fg: 'white',
+                    bold: true
+                },
+                item: {
+                    hover: {
+                        bg: 'blue',
+                        fg: 'white'
+                    }
+                }
+            },
+            label: {
+                text: options.label,
+                side: 'center'
+            },
+            keys: true,
+            vi: true,
+            mouse: true,
+            scrollbar: {
+                ch: '║',
+                track: {
+                    bg: 'blue'
+                },
+                style: {
+                    inverse: true
+                }
+            },
+            padding: 1,
+            ...options
+        });
+    }
+
     showConfirmDialog(message) {
         return new Promise((resolve) => {
             const dialog = blessed.question({
                 parent: this.screen,
-                border: 'line',
+                border: {
+                    type: 'line',
+                    fg: 'blue'
+                },
                 height: 'shrink',
                 width: '50%',
                 top: 'center',
                 left: 'center',
-                label: ' Confirm (Esc to cancel) ',
+                label: {
+                    text: ' Confirm (Esc to cancel) ',
+                    side: 'center'
+                },
+                style: {
+                    border: {
+                        fg: 'blue'
+                    }
+                },
+                padding: 1,
                 tags: true,
                 keys: true,
                 vi: true,
@@ -338,7 +426,6 @@ class BotUI {
                 content: message
             });
 
-            // Add escape key handler
             dialog.key(['escape'], () => {
                 dialog.destroy();
                 this.menuList.focus();
