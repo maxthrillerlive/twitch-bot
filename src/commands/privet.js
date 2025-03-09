@@ -5,6 +5,6 @@ module.exports = {
     enabled: true,
     modOnly: false,
     execute: async (client, channel, userstate, message) => {
-        await client.say(channel, 'Привет! (Privet!)');
+        await client.say(channel, `Привет, @${userstate.username}! (Hello, @${userstate.username}!)`);
     }
 }; 
