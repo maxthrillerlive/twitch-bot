@@ -19,8 +19,7 @@ if (!process.env.CHANNEL_NAME) {
 // Define configuration options
 const opts = {
     options: { 
-        debug: true,
-        clientId: process.env.CLIENT_ID,
+        debug: false,
         messagesLogLevel: "info"
     },
     connection: {
@@ -28,7 +27,8 @@ const opts = {
         secure: true,
         timeout: 30000,
         reconnectDecay: 1.4,
-        reconnectInterval: 1000
+        reconnectInterval: 1000,
+        maxReconnectAttempts: 2
     },
     identity: {
         username: process.env.BOT_USERNAME,
@@ -48,8 +48,13 @@ client.removeAllListeners();
 // Register our event handlers (only once)
 client.once('connected', onConnectedHandler);
 client.on('message', onMessageHandler);
+
+// Only register essential event handlers
 client.on('disconnected', (reason) => {
     console.error('Bot disconnected:', reason);
+    if (!isShuttingDown) {
+        console.log('Attempting to reconnect...');
+    }
 });
 
 // Handle connection errors
@@ -100,6 +105,15 @@ client.connect()
         }
     });
 
+// Message deduplication cache
+const messageCache = new Set();
+const MESSAGE_CACHE_TTL = 2000; // 2 seconds TTL
+
+function addToMessageCache(key) {
+    messageCache.add(key);
+    setTimeout(() => messageCache.delete(key), MESSAGE_CACHE_TTL);
+}
+
 // Called every time a message comes in
 async function onMessageHandler(target, context, msg, self) {
     if (self) { return; } // Ignore messages from the bot
@@ -111,6 +125,18 @@ async function onMessageHandler(target, context, msg, self) {
     if (!commandText.startsWith('!')) {
         return; // Not a command, ignore
     }
+
+    // Create a unique key for this message
+    const messageKey = `${context.username}-${commandText}-${Date.now()}`;
+    
+    // Check if we've seen this message recently
+    if (messageCache.has(messageKey)) {
+        console.log(`[DEBUG] Duplicate message detected, ignoring: ${commandText}`);
+        return;
+    }
+    
+    // Add message to cache
+    addToMessageCache(messageKey);
 
     console.log(`[DEBUG] Processing command: ${commandText} from ${context.username}`);
 
