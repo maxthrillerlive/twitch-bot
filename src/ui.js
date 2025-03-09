@@ -184,7 +184,22 @@ class BotUI {
 
     logToConsole(color, ...args) {
         const timestamp = new Date().toLocaleTimeString();
-        const message = args.join(' ');
+        const formattedArgs = args.map(arg => {
+            if (Array.isArray(arg)) {
+                return arg.map(item => {
+                    if (typeof item === 'object' && item !== null) {
+                        // For command objects, show the trigger
+                        return item.trigger || JSON.stringify(item);
+                    }
+                    return String(item);
+                }).join(', ');
+            } else if (typeof arg === 'object' && arg !== null) {
+                // For command objects, show the trigger
+                return arg.trigger || JSON.stringify(arg);
+            }
+            return String(arg);
+        });
+        const message = formattedArgs.join(' ');
         this.consoleBox.log(`{${color}-fg}[${timestamp}] ${message}{/${color}-fg}`);
         this.screen.render();
     }
